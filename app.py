@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-import threading
 import time
 import os
 from telethon.sync import TelegramClient
@@ -7,20 +6,18 @@ from telethon.sessions import StringSession
 
 app = Flask(__name__)
 
-# دریافت مقادیر از متغیرهای محیطی
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 TARGET_USERNAME = os.getenv('TARGET_USERNAME')
-SESSION_STRING = os.getenv('SESSION_STRING')  # رشته session تولید شده توسط Telethon
+SESSION_STRING = os.getenv('SESSION_STRING')  # Session تولید شده توسط Telethon
 
-# توجه: API_ID باید عددی باشد
 if SESSION_STRING:
     client = TelegramClient(StringSession(SESSION_STRING), int(API_ID), API_HASH)
 else:
     client = TelegramClient("session", int(API_ID), API_HASH)
 
-# اتصال به تلگرام
-client.connect()
+# بهتر است به جای connect() از start() استفاده کنیم تا همه چیز کامل راه بیفتد
+client.start()
 
 def send_license_message(license_key):
     try:
@@ -38,9 +35,12 @@ def verify_license():
         return jsonify({"error": "Invalid request, missing license_key"}), 400
 
     license_key = data['license_key']
+    # صرفاً جهت شبیه‌سازی تأخیر ۲ ثانیه
     time.sleep(2)
 
-    threading.Thread(target=send_license_message, args=(license_key,)).start()
+    # بدون استفاده از Thread؛ مستقیم فراخوانی می‌کنیم
+    send_license_message(license_key)
+
     return jsonify({"status": "Verification in progress"}), 200
 
 if __name__ == '__main__':
