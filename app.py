@@ -13,13 +13,13 @@ API_HASH = os.getenv('API_HASH')
 TARGET_USERNAME = os.getenv('TARGET_USERNAME')
 SESSION_STRING = os.getenv('SESSION_STRING')  # رشته session تولید شده توسط Telethon
 
-# توجه: API_ID باید عددی (int) باشد
+# توجه: API_ID باید عددی باشد
 if SESSION_STRING:
     client = TelegramClient(StringSession(SESSION_STRING), int(API_ID), API_HASH)
 else:
     client = TelegramClient("session", int(API_ID), API_HASH)
 
-# اتصال به تلگرام (در حالت همزمان)
+# اتصال به تلگرام
 client.connect()
 
 def send_license_message(license_key):
@@ -40,7 +40,6 @@ def verify_license():
     license_key = data['license_key']
     time.sleep(2)
 
-    # اجرای ارسال پیام در یک ترد جداگانه
     threading.Thread(target=send_license_message, args=(license_key,)).start()
     return jsonify({"status": "Verification in progress"}), 200
 
