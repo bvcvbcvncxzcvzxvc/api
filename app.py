@@ -1,17 +1,23 @@
 from flask import Flask, request, jsonify
 from pyrogram import Client
+from pyrogram.session import StringSession
 import threading
 import time
-import os  # اضافه شد
+import os
 
 app = Flask(__name__)
 
-# حالا این‌ها رو از متغیرهای محیطی (Environment Variables) می‌گیریم
+# دریافت تنظیمات از متغیرهای محیطی
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 TARGET_USERNAME = os.getenv('TARGET_USERNAME')
+SESSION_STRING = os.getenv('SESSION_STRING')  # مقدار session string
 
-app_pyrogram = Client('real_account', api_id=API_ID, api_hash=API_HASH)
+# استفاده از session string در صورت وجود
+if SESSION_STRING:
+    app_pyrogram = Client(StringSession(SESSION_STRING), api_id=API_ID, api_hash=API_HASH)
+else:
+    app_pyrogram = Client("real_account", api_id=API_ID, api_hash=API_HASH)
 
 def send_license_message(license_key):
     try:
