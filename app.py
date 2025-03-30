@@ -1,17 +1,16 @@
 from flask import Flask, request, jsonify
-from pyrogram import Client
-from pyrogram.session import StringSession
+from pyrogram import Client, StringSession
 import threading
 import time
 import os
 
 app = Flask(__name__)
 
-# دریافت تنظیمات از متغیرهای محیطی
+# دریافت مقادیر از متغیرهای محیطی
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 TARGET_USERNAME = os.getenv('TARGET_USERNAME')
-SESSION_STRING = os.getenv('SESSION_STRING')  # مقدار session string
+SESSION_STRING = os.getenv('SESSION_STRING')
 
 # استفاده از session string در صورت وجود
 if SESSION_STRING:
