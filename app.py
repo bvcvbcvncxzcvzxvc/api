@@ -2,12 +2,14 @@ from flask import Flask, request, jsonify
 from pyrogram import Client
 import threading
 import time
+import os  # اضافه شد
 
 app = Flask(__name__)
 
-API_ID = '20963852'
-API_HASH = 'f5766ed7713132a8e3c9e7e92c2a4090'
-TARGET_USERNAME = "@se36We"
+# حالا این‌ها رو از متغیرهای محیطی (Environment Variables) می‌گیریم
+API_ID = os.getenv('API_ID')
+API_HASH = os.getenv('API_HASH')
+TARGET_USERNAME = os.getenv('TARGET_USERNAME')
 
 app_pyrogram = Client('real_account', api_id=API_ID, api_hash=API_HASH)
 
