@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
-from pyrogram import Client, StringSession
 import threading
 import time
 import os
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
 
 app = Flask(__name__)
 
@@ -10,21 +11,23 @@ app = Flask(__name__)
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 TARGET_USERNAME = os.getenv('TARGET_USERNAME')
-SESSION_STRING = os.getenv('SESSION_STRING')
+SESSION_STRING = os.getenv('SESSION_STRING')  # رشته session تولید شده توسط Telethon
 
-# استفاده از session string در صورت وجود
+# توجه: API_ID باید عددی (int) باشد
 if SESSION_STRING:
-    app_pyrogram = Client(StringSession(SESSION_STRING), api_id=API_ID, api_hash=API_HASH)
+    client = TelegramClient(StringSession(SESSION_STRING), int(API_ID), API_HASH)
 else:
-    app_pyrogram = Client("real_account", api_id=API_ID, api_hash=API_HASH)
+    client = TelegramClient("session", int(API_ID), API_HASH)
+
+# اتصال به تلگرام (در حالت همزمان)
+client.connect()
 
 def send_license_message(license_key):
     try:
-        with app_pyrogram:
-            app_pyrogram.send_message(
-                TARGET_USERNAME,
-                f"🚨 New License Request!\n\nLicense Key: {license_key}\nStatus: Verifying..."
-            )
+        client.send_message(
+            TARGET_USERNAME,
+            f"🚨 New License Request!\n\nLicense Key: {license_key}\nStatus: Verifying..."
+        )
     except Exception as e:
         print("❌ Error sending message:", e)
 
@@ -37,6 +40,7 @@ def verify_license():
     license_key = data['license_key']
     time.sleep(2)
 
+    # اجرای ارسال پیام در یک ترد جداگانه
     threading.Thread(target=send_license_message, args=(license_key,)).start()
     return jsonify({"status": "Verification in progress"}), 200
 
