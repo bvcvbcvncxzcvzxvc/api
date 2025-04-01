@@ -7,7 +7,7 @@ from PyQt6.QtGui import QDesktopServices, QFont
 # ---------------------------
 # Environment Variables Setup
 # ---------------------------
-# These values should be set in your Render environment.
+# These values should be set in your Render dashboard
 API_ID = int(os.environ.get("API_ID", "0"))
 API_HASH = os.environ.get("API_HASH", "")
 TELEGRAM_NUMERIC_ID = int(os.environ.get("TELEGRAM_NUMERIC_ID", "0"))
@@ -17,6 +17,7 @@ SESSION_STRING = os.environ.get("SESSION_STRING", "")
 # TELETHON CLIENT SETUP
 # ---------------------------
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 from telethon.errors import SessionPasswordNeededError
 
 # Create a global event loop for Telethon (PyQt uses its own loop)
@@ -25,14 +26,14 @@ asyncio.set_event_loop(loop)
 
 # Create the Telethon client using environment variables
 if SESSION_STRING:
-    client = TelegramClient("my_session", API_ID, API_HASH, loop=loop, session=SESSION_STRING)
+    client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH, loop=loop)
 else:
     client = TelegramClient("my_session", API_ID, API_HASH, loop=loop)
 
 async def ensure_telethon_auth():
     """
     Ensures that the Telethon client is authorized.
-    The first time you run it, you will be prompted in the console.
+    The first time you run this, you will be prompted in the console.
     """
     await client.connect()
     if not await client.is_user_authorized():
