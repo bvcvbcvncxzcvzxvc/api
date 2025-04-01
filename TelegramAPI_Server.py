@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 import os
+
 
 # Environment Variables (Set these on your server)
 API_ID = int(os.getenv('API_ID'))
@@ -14,8 +16,8 @@ SESSION_STRING = os.getenv('SESSION_STRING')
 app = FastAPI()
 
 
-# Telegram Client Initialization
-client = TelegramClient(SESSION_STRING, API_ID, API_HASH)
+# Telegram Client Initialization using StringSession
+client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 client.connect()
 
 
