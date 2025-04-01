@@ -1,2 +1,6 @@
-flask
+PyQt6
 telethon
+Flask
+pyautogui
+requests
+pygetwindow
