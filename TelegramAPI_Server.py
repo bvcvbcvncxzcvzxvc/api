@@ -1,44 +1,36 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from telethon import TelegramClient
-from telethon.sessions import StringSession
 import os
 import asyncio
+from telethon import TelegramClient, events
+from telethon.sessions import StringSession
 
-# متغیرهای محیطی (این مقادیر باید روی سرور تنظیم شوند)
-API_ID = int(os.getenv('API_ID'))
-API_HASH = os.getenv('API_HASH')
-TELEGRAM_NUMERIC_ID = int(os.getenv('TELEGRAM_NUMERIC_ID'))
-SESSION_STRING = os.getenv('SESSION_STRING')
+# خواندن اطلاعات حساس از Environment Variables
+API_ID = int(os.environ["TELEGRAM_API_ID"])
+API_HASH = os.environ["TELEGRAM_API_HASH"]
+SESSION_STRING = os.environ["TELEGRAM_SESSION"]  # رشته سشن تولید شده
+REPLY_MESSAGE = os.environ["TELEGRAM_REPLY_MESSAGE"]  # پیام پاسخ از سرور (بدون مقدار پیش‌فرض)
 
-# راه‌اندازی اپلیکیشن FastAPI
-app = FastAPI()
-
-# مقداردهی اولیه‌ی کلاینت تلگرام با استفاده از StringSession
+# ایجاد کلاینت تلگرام با استفاده از StringSession
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
-@app.on_event("startup")
-async def startup_event():
-    await client.connect()
-    if not await client.is_user_authorized():
-        raise HTTPException(status_code=401, detail="Unauthorized. Please authenticate again.")
-
-# مدل داده پیام – در اینجا تنها فیلد message نیاز است
-class MessageData(BaseModel):
-    message: str
-
-@app.post('/send-message/')
-async def send_message(data: MessageData):
+@client.on(events.NewMessage)
+async def auto_reply(event):
+    # جلوگیری از پاسخ به پیام‌های ارسالی توسط خودمان
+    if event.out:
+        return
     try:
-        # استفاده از TELEGRAM_NUMERIC_ID از متغیر محیطی به جای دریافت chat_id از کلاینت
-        await client.send_message(TELEGRAM_NUMERIC_ID, data.message)
-        return {"status": "Message sent successfully."}
+        sender = await event.get_sender()
+        sender_username = sender.username if sender else "نامشخص"
+        print(f"📥 دریافت پیام از {sender_username}: {event.message.text}")
+        # ارسال پاسخ خودکار
+        await event.reply(REPLY_MESSAGE)
+        print(f"✅ پاسخ '{REPLY_MESSAGE}' ارسال شد.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ خطا در auto_reply: {e}")
 
-@app.get('/status/')
-async def status():
-    if client.is_connected():
-        return {"status": "Connected to Telegram."}
-    else:
-        return {"status": "Disconnected."}
+async def main():
+    await client.start()
+    print("✅ کلاینت تلگرام شروع به کار کرد.")
+    await client.run_until_disconnected()
+
+if __name__ == "__main__":
+    asyncio.run(main())
