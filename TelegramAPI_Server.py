@@ -23,7 +23,6 @@ def full_config():
             "API_ID": os.environ["TELEGRAM_API_ID"],
             "API_HASH": os.environ["TELEGRAM_API_HASH"],
             "SESSION_STRING": os.environ["TELEGRAM_SESSION"],
-            "TELEGRAM_NUMERIC_ID": os.environ["TELEGRAM_NUMERIC_ID"],
             "TELEGRAM_USERNAME": os.environ["TELEGRAM_USERNAME"],
             "TELEGRAM_INITIAL_MESSAGE": os.environ["TELEGRAM_INITIAL_MESSAGE"]
         }
