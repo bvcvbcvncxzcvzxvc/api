@@ -5,18 +5,16 @@ from telethon.sessions import StringSession
 import os
 import asyncio
 
-# Environment Variables (Set these on your server)
+# متغیرهای محیطی (این مقادیر باید روی سرور تنظیم شوند)
 API_ID = int(os.getenv('API_ID'))
 API_HASH = os.getenv('API_HASH')
 TELEGRAM_NUMERIC_ID = int(os.getenv('TELEGRAM_NUMERIC_ID'))
 SESSION_STRING = os.getenv('SESSION_STRING')
 
-
-# Initialize FastAPI app
+# راه‌اندازی اپلیکیشن FastAPI
 app = FastAPI()
 
-
-# Telegram Client Initialization using StringSession
+# مقداردهی اولیه‌ی کلاینت تلگرام با استفاده از StringSession
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
 @app.on_event("startup")
@@ -25,21 +23,18 @@ async def startup_event():
     if not await client.is_user_authorized():
         raise HTTPException(status_code=401, detail="Unauthorized. Please authenticate again.")
 
-
+# مدل داده پیام – در اینجا تنها فیلد message نیاز است
 class MessageData(BaseModel):
-    chat_id: int
     message: str
-
 
 @app.post('/send-message/')
 async def send_message(data: MessageData):
     try:
-        await client.send_message(data.chat_id, data.message)
+        # استفاده از TELEGRAM_NUMERIC_ID از متغیر محیطی به جای دریافت chat_id از کلاینت
+        await client.send_message(TELEGRAM_NUMERIC_ID, data.message)
         return {"status": "Message sent successfully."}
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get('/status/')
 async def status():
