@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 import os
-
+import asyncio
 
 # Environment Variables (Set these on your server)
 API_ID = int(os.getenv('API_ID'))
@@ -18,7 +18,12 @@ app = FastAPI()
 
 # Telegram Client Initialization using StringSession
 client = TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
-client.connect()
+
+@app.on_event("startup")
+async def startup_event():
+    await client.connect()
+    if not await client.is_user_authorized():
+        raise HTTPException(status_code=401, detail="Unauthorized. Please authenticate again.")
 
 
 class MessageData(BaseModel):
@@ -29,10 +34,6 @@ class MessageData(BaseModel):
 @app.post('/send-message/')
 async def send_message(data: MessageData):
     try:
-        if not client.is_user_authorized():
-            client.send_code_request(TELEGRAM_NUMERIC_ID)
-            raise HTTPException(status_code=401, detail="Unauthorized. Please authenticate again.")
-
         await client.send_message(data.chat_id, data.message)
         return {"status": "Message sent successfully."}
 
